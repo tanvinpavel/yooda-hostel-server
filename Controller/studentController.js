@@ -139,30 +139,86 @@ studentController.updateMultipleStatusInActive = (req, res) => {
 }
 
 studentController.foodDistributionForm = (req, res) => {
-    distribution.insertOne(req.body, (err, data) => {
+    const query = { s_id: req.body.s_id, date: req.body.date };
+    // if => shift: {day: true}; then the value of => key = 'day';
+    console.log(req.body);
+
+    distribution.findOne(query, (err, data) => {
         if(err){
             res.status(500).json({
-                error: 'data update failed'
+                error: 'there is an error to find'
             });
         }else{
-            const id = req.body.s_id;
-            const payload = { $set: {
-                receive: {
-                    date: req.body.date,
-                    shift: req.body.shift
-                }
-            } };
-            students.updateOne({_id: ObjectId(id)}, payload, { upsert: true }, (err) => {
-                if(err){
-                    res.status(500).json({
-                        error: 'data update failed'
-                    });
-                }else{
-                    res.status(200).json(data);
-                }
-            })
+            if(data){
+                const query = {_id: ObjectId(data._id)}
+                const payload = {
+                    $set: {
+                        shift: {
+                            ...data.shift,
+                            ...req.body.shift
+                        }
+                    },
+                    $push: {
+                        foodList: { $each: [...req.body.foodList] },
+                    }
+                };
+                distribution.updateOne(query, payload, (err, data) => {
+                    if(err){
+                        console.log(err)
+                        res.status(500).json({
+                            error: 'data update failed'
+                        });
+                    }else{
+                        const id = req.body.s_id;
+                        const payload = {
+                                $push: {
+                                    "receive.shift": req.body.shift
+                                }
+                        };
+                        students.updateOne({_id: ObjectId(id)}, payload, (err) => {
+                            if(err){
+                                res.status(500).json({
+                                    error: 'data update failed'
+                                });
+                            }else{
+                                console.log(data);
+                                res.status(200).json(data);
+                            }
+                        })
+                        console.log(data)
+                    }
+                })
+            }else{
+                distribution.insertOne(req.body, (err, data) => {
+                    if(err){
+                        res.status(500).json({
+                            error: 'data update failed'
+                        });
+                    }else{
+                        const id = req.body.s_id;
+                        const payload = { $set: {
+                            receive: {
+                                date: req.body.date,
+                                shift: [req.body.shift],
+                            }
+                        }};
+                        students.updateOne({_id: ObjectId(id)}, payload, { upsert: true }, (err) => {
+                            if(err){
+                                res.status(500).json({
+                                    error: 'data update failed'
+                                });
+                            }else{
+                                res.status(200).json(data);
+                            }
+                        })
+                    }
+                })
+            }
         }
     })
+
+
+    
 }
 
 module.exports = studentController;

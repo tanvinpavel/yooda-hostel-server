@@ -31,16 +31,6 @@ mongoUtil.connectToServer( function( err, client ){
     }
 });
 
-const errorHandlerMiddleware = (err, req, res, next) => {
-    if(err){
-        console.log(err);
-        res.status(500).send(err);
-    }
-};
-
-//call error handler
-app.use(errorHandlerMiddleware);
-
 //port variable
 const port = process.env.PORT || 4000;
 
