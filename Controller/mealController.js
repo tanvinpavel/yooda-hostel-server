@@ -8,16 +8,26 @@ const meals = db.collection('meals');
 const mealController = {};
 
 //controllers
-mealController.loadAllMealData = (req, res) => {
-    meals.find().toArray((err, data) => {
-        if(err){
-            res.status(500).json({
-                error: 'data fetch failed'
-            });
+mealController.loadAllMealData = async (req, res) => {
+    try {
+        const limitInt = parseInt(req.query.limit);
+        const pageInt = parseInt(req.query.page);
+
+        // console.log(limitInt, pageInt);
+
+        const cursor = meals.find({});
+        const count = await cursor.count();
+        let payload;
+
+        if(pageInt){
+            payload = await cursor.skip(limitInt * (pageInt-1)).limit(limitInt).toArray();
         }else{
-            res.status(200).json(data);
+            payload = await cursor.toArray();
         }
-    })  
+        res.status(200).json({count, payload})
+    } catch (error) {
+        res.status(500).json(error);
+    }
 };
 
 mealController.loadMealDataById = (req, res) => {
@@ -35,7 +45,14 @@ mealController.loadMealDataById = (req, res) => {
 
 mealController.addNewMeal = async (req, res) => {
     try{
-        await meals.insertOne(req.body);
+        //type casting
+        const priceInt = parseInt(req.body.price);
+        //create payload
+        const payload = {
+            name: req.body.name,
+            price: priceInt
+        }
+        await meals.insertOne(payload);
 
         res.status(200).json({
             message: 'data insert successfully'
@@ -49,9 +66,12 @@ mealController.addNewMeal = async (req, res) => {
 
 mealController.updateMealById = (req, res) => {
     const query = {_id: ObjectId(req.params.id)};
-    const payload = {$set: req.body};
 
-    meals.updateOne(query, payload, (err, data) => {
+    //type casting
+    req.body.price && (req.body.price = parseInt(req.body.price));
+
+
+    meals.updateOne(query, {$set: req.body}, (err, data) => {
         if(err){
             res.status(500).json({
                 error: 'data update failed'
@@ -72,6 +92,21 @@ mealController.deleteMealById = async (req, res) => {
             res.status(200).json(result);
         }
     }catch{
+        res.status(500).json({
+            error: 'data delete Failed'
+        })
+    }
+}
+
+mealController.deleteMany = async (req, res)  => {
+    try {
+        // console.log(req.body);
+        const query = req.body.item.map(i => ObjectId(i));
+        const result = await meals.deleteMany({_id: {$in: query}});
+        
+        res.send(result);
+    } catch (error) {
+        console.log(error);
         res.status(500).json({
             error: 'data delete Failed'
         })

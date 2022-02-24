@@ -24,9 +24,11 @@ mongoUtil.connectToServer( function( err, client ){
 
         const mealsRoute = require('./Routes/mealsRoute');
         const studentRoute = require('./Routes/studentRoute');
+        const mealDistributionRoute = require('./Routes/mealDistributionRoute');
 
         app.use('/meal', mealsRoute);
         app.use('/student', studentRoute);
+        app.use('/mealDist', mealDistributionRoute)
         console.log('Server connected');
     }
 });

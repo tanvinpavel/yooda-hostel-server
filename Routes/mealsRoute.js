@@ -18,5 +18,8 @@ route.put('/update/:id', mealController.updateMealById);
 //delete by id
 route.delete('/delete/:id', mealController.deleteMealById);
 
+//bulk action
+route.delete('/deleteMany', mealController.deleteMany);
+
 
 module.exports = route;

@@ -140,8 +140,6 @@ studentController.updateMultipleStatusInActive = (req, res) => {
 
 studentController.foodDistributionForm = (req, res) => {
     const query = { s_id: req.body.s_id, date: req.body.date };
-    // if => shift: {day: true}; then the value of => key = 'day';
-    console.log(req.body);
 
     distribution.findOne(query, (err, data) => {
         if(err){
@@ -149,8 +147,11 @@ studentController.foodDistributionForm = (req, res) => {
                 error: 'there is an error to find'
             });
         }else{
+            const fList = req.body.foodList.map(item => ObjectId(item));
+            req.body.foodList = fList;
             if(data){
-                const query = {_id: ObjectId(data._id)}
+                const query = {_id: ObjectId(data._id)};
+                // console.log(fList);
                 const payload = {
                     $set: {
                         shift: {
@@ -159,12 +160,11 @@ studentController.foodDistributionForm = (req, res) => {
                         }
                     },
                     $push: {
-                        foodList: { $each: [...req.body.foodList] },
+                        foodList: { $each: fList },
                     }
                 };
                 distribution.updateOne(query, payload, (err, data) => {
                     if(err){
-                        console.log(err)
                         res.status(500).json({
                             error: 'data update failed'
                         });
@@ -181,11 +181,9 @@ studentController.foodDistributionForm = (req, res) => {
                                     error: 'data update failed'
                                 });
                             }else{
-                                console.log(data);
                                 res.status(200).json(data);
                             }
-                        })
-                        console.log(data)
+                        });
                     }
                 })
             }else{
@@ -216,9 +214,6 @@ studentController.foodDistributionForm = (req, res) => {
             }
         }
     })
-
-
-    
 }
 
 module.exports = studentController;
