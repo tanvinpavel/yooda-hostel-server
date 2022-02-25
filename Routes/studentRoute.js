@@ -16,9 +16,8 @@ route.post('/addStudent', studentController.addNewStudent);
 //add new student
 route.post('/searchStudent', studentController.searchStudent);
 
-//update multiple status
-route.put('/updateStatus/active', studentController.updateMultipleStatusActive);
-route.put('/updateStatus/inActive', studentController.updateMultipleStatusInActive);
+//update multiple status(bulk action)
+route.put('/updateStatus/action', studentController.updateMultipleStatus);
 
 //update student info by id
 route.put('/updateInfo/:id', studentController.updateStudentInfoByID);

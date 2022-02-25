@@ -138,6 +138,31 @@ studentController.updateMultipleStatusInActive = (req, res) => {
     })
 }
 
+studentController.updateMultipleStatus = async (req, res) => {
+    const { action, statusIDList} = req.body;
+    let statusObjID = statusIDList.map(item => ObjectId(item));
+
+    if(action === 'active'){
+        try {
+            let result =  await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'active'}});
+            res.send(result);
+        } catch (error) {
+            res.status(500).json({
+                error: "Internal Server Error"
+            })
+        }
+    }else if(action === 'inActive'){
+        try {
+            let result = await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'inActive'}});
+            res.send(result);
+        } catch (error) {
+            res.status(500).json({
+                error: "Internal Server Error"
+            })
+        }
+    }
+}
+
 studentController.foodDistributionForm = (req, res) => {
     const query = { s_id: req.body.s_id, date: req.body.date };
 
