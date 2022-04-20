@@ -3,7 +3,6 @@ const mongoUtil = require('../Utility/mongoUtil');
 
 const db = mongoUtil.getDb();
 
-const students = db.collection('students');
 const distribution = db.collection('distribution');
 
 //moduleScaffolding

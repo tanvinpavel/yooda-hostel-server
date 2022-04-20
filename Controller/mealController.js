@@ -100,7 +100,7 @@ mealController.deleteMealById = async (req, res) => {
 
 mealController.deleteMany = async (req, res)  => {
     try {
-        // console.log(req.body);
+        console.log(req.body);
         const query = req.body.item.map(i => ObjectId(i));
         const result = await meals.deleteMany({_id: {$in: query}});
         

@@ -33,8 +33,9 @@ studentController.loadAllStudentData = async (req, res) => {
 
 //load student data by roll
 studentController.searchStudent = (req, res) => {
-    const query = { roll: req.body.roll}
-    students.findOne(query, (err, data) => {
+    students.findOne({
+        $or: [{name: req?.body?.name}, {roll: req?.body?.roll}]
+    }, (err, data) => {
         if(err){
             res.status(500).json({
                 error: 'data fetch failed'

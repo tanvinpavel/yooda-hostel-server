@@ -1,31 +1,36 @@
 const express = require("express")
 const studentController = require('../Controller/studentController');
+const accessValidation = require('../Middleware/authMiddleware');
 
 const route = express.Router();
 
-//routes
+
+//                                <== PUBLIC Route ==>
+
 //load all student data
 route.get('/', studentController.loadAllStudentData);
 
-//load student data by id
-route.get('/:id', studentController.loadStudentDataById);
-
-//add new student
-route.post('/addStudent', studentController.addNewStudent);
-
-//add new student
+//search student by (name & roll) 
 route.post('/searchStudent', studentController.searchStudent);
 
+//load student data by id
+route.get('/:id', studentController.loadStudentDataById);
+//                                <== PRIVATE Route ==>
+
+//add new student
+route.post('/addStudent', accessValidation, studentController.addNewStudent);
+
+
 //update multiple status(bulk action)
-route.put('/updateStatus/action', studentController.updateMultipleStatus);
+route.put('/updateStatus/action', accessValidation, studentController.updateMultipleStatus);
 
 //update student info by id
-route.put('/updateInfo/:id', studentController.updateStudentInfoByID);
+route.put('/updateInfo/:id', accessValidation, studentController.updateStudentInfoByID);
 
 //delete student by id
-route.delete('/deleteStudent/:id', studentController.deleteStudentById);
+route.delete('/deleteStudent/:id', accessValidation, studentController.deleteStudentById);
 
 //save the food Distribution Form
-route.post('/foodDistribution', studentController.foodDistributionForm);
+route.post('/foodDistribution', accessValidation, studentController.foodDistributionForm);
 
 module.exports = route;
