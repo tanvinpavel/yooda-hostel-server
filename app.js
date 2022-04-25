@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 //route method
 const app = express();
 
-const whiteList = ['http://127.0.0.1:5050', 'http://localhost:3000'];
+const whiteList = ['http://127.0.0.1:5050', 'http://localhost:3000', 'https://quizzical-brahmagupta-875937.netlify.app'];
 
 const axiosOption = {
     origin: (origin, callback) => {
