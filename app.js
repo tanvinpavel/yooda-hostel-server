@@ -13,7 +13,6 @@ const axiosOption = {
         if(whiteList.indexOf(origin) !== -1){
             callback(null, true);
         }else{
-            console.log(origin);
             callback(new Error('not allow by cors'))
         }
     },
