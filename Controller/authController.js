@@ -58,8 +58,10 @@ authController.login = async (req, res) => {
         const response = await userCollection.updateOne(filter, update, option);
 
         res.cookie('jwt', refreshToken, {
+            domain: 'https://powerful-river-71836.herokuapp.com/'
             maxAge: 1000*60*60*24,
-            httpOnly: true
+            httpOnly: true,
+            secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
         })
 
         res.json({name: result.name, accessToken});
