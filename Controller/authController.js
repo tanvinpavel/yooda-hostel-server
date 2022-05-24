@@ -16,14 +16,30 @@ authController.signup = async (req, res) => {
         
         const uniqEmail = await userCollection.findOne({email: email});
         
-        if(uniqEmail) return res.json('email already exits');
+        if(uniqEmail) return res.status(403).json('Email already exits');
         
         payload.pass = await bcrypt.hash(pass, 11);
 
-        const result = await userCollection.insertOne(payload);
-        res.json(result);
+        const accessToken = CreateAccessToken({name, email});
+        const refreshToken = CreateRefreshToken({name, email});
+        
+        // store refresh token in database
+        const result = await userCollection.insertOne({
+            ...payload,
+            log: [ refreshToken ]
+        });
+        
+        res.cookie('jwt', refreshToken, {
+            path: "/",
+            secure: true,
+            httpOnly: true,
+            maxAge: 1000*60*60*24,
+            sameSite: 'none'
+        });
+        
+        res.status(200).json({name, accessToken});
     } catch (err) {
-        res.status(500).json('internal server error');
+        res.status(500).json(err);
     }
 }
 
@@ -43,9 +59,11 @@ authController.login = async (req, res) => {
         const {email, pass} = req.body;
         const result = await userCollection.findOne({email});
 
-        if(!result) return res.status(401).json('wrong email & password 1');
+        if(!result) return res.status(401).json('Wrong email & password 1');
         
-        const hashPass = await bcrypt.compare(pass, result.pass);        
+        const isValidPassword = await bcrypt.compare(pass, result.pass);
+        
+        if(!isValidPassword) return res.status(401).json('Wrong email & password 2');
 
         const accessToken = CreateAccessToken({name: result.name, email});
         const refreshToken = CreateRefreshToken({name: result.name, email});
@@ -58,13 +76,13 @@ authController.login = async (req, res) => {
         const response = await userCollection.updateOne(filter, update, option);
 
         res.cookie('jwt', refreshToken, {
-            domain: 'https://powerful-river-71836.herokuapp.com/'
             maxAge: 1000*60*60*24,
             httpOnly: true,
-            secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
+            secure: true,
+            sameSite: 'none'
         })
 
-        res.json({name: result.name, accessToken});
+        res.status(200).json({name: result.name, accessToken});
     } catch (error) {
         res.status(500).json('Internal server error');
     }

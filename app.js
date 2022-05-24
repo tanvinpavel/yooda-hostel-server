@@ -10,7 +10,7 @@ const whiteList = ['http://127.0.0.1:5050', 'http://localhost:3000', 'https://qu
 
 const axiosOption = {
     origin: (origin, callback) => {
-        if(whiteList.indexOf(origin) !== -1){
+        if(whiteList.indexOf(origin) !== -1 || true){
             callback(null, true);
         }else{
             callback(new Error('not allow by cors'))
