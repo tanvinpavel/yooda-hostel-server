@@ -108,7 +108,6 @@ studentController.deleteStudentById = async (req, res) => {
 //update multiple status
 studentController.updateMultipleStatusActive = (req, res) => {
     const {status} = req.body;
-    // console.log(status)
 
     let objId = status. map(s => ObjectId(s));
 
@@ -164,82 +163,18 @@ studentController.updateMultipleStatus = async (req, res) => {
     }
 }
 
-studentController.foodDistributionForm = (req, res) => {
-    const query = { s_id: req.body.s_id, date: req.body.date };
-
-    distribution.findOne(query, (err, data) => {
-        if(err){
-            res.status(500).json({
-                error: 'there is an error to find'
-            });
-        }else{
-            const fList = req.body.foodList.map(item => ObjectId(item));
-            req.body.foodList = fList;
-            if(data){
-                const query = {_id: ObjectId(data._id)};
-                // console.log(fList);
-                const payload = {
-                    $set: {
-                        shift: {
-                            ...data.shift,
-                            ...req.body.shift
-                        }
-                    },
-                    $push: {
-                        foodList: { $each: fList },
-                    }
-                };
-                distribution.updateOne(query, payload, (err, data) => {
-                    if(err){
-                        res.status(500).json({
-                            error: 'data update failed'
-                        });
-                    }else{
-                        const id = req.body.s_id;
-                        const payload = {
-                                $push: {
-                                    "receive.shift": req.body.shift
-                                }
-                        };
-                        students.updateOne({_id: ObjectId(id)}, payload, (err) => {
-                            if(err){
-                                res.status(500).json({
-                                    error: 'data update failed'
-                                });
-                            }else{
-                                res.status(200).json(data);
-                            }
-                        });
-                    }
-                })
-            }else{
-                distribution.insertOne(req.body, (err, data) => {
-                    if(err){
-                        res.status(500).json({
-                            error: 'data update failed'
-                        });
-                    }else{
-                        const id = req.body.s_id;
-                        const payload = { $set: {
-                            receive: {
-                                date: req.body.date,
-                                shift: [req.body.shift],
-                            }
-                        }};
-                        students.updateOne({_id: ObjectId(id)}, payload, { upsert: true }, (err) => {
-                            if(err){
-                                res.status(500).json({
-                                    error: 'data update failed'
-                                });
-                            }else{
-                                res.status(200).json(data);
-                            }
-                        })
-                    }
-                })
-            }
-        }
-    })
+studentController.deleteMultipleStudent = async (req, res) => {
+    try {
+        const {statusIDList} = req.body;
+        const query = statusIDList.map(i => ObjectId(i));
+        const result = await students.deleteMany({_id: {$in: query}});
+        
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({
+            error: 'data delete Failed'
+        })
+    }
 }
 
 module.exports = studentController;

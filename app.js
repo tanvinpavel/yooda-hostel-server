@@ -28,7 +28,6 @@ app.use(cookieParser());
 //database connection 
 mongoUtil.connectToServer( function( err, client ){
     if (err) {
-        console.log(err);
         res.status(500).send(err);
     }else{
         app.get('/', (req, res) => {

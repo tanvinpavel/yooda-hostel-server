@@ -13,8 +13,6 @@ mealController.loadAllMealData = async (req, res) => {
         const limitInt = parseInt(req.query.limit);
         const pageInt = parseInt(req.query.page);
 
-        // console.log(limitInt, pageInt);
-
         const cursor = meals.find({});
         const count = await cursor.count();
         let payload;
@@ -100,13 +98,11 @@ mealController.deleteMealById = async (req, res) => {
 
 mealController.deleteMany = async (req, res)  => {
     try {
-        console.log(req.body);
         const query = req.body.item.map(i => ObjectId(i));
         const result = await meals.deleteMany({_id: {$in: query}});
         
         res.send(result);
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             error: 'data delete Failed'
         })

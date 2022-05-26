@@ -59,11 +59,11 @@ authController.login = async (req, res) => {
         const {email, pass} = req.body;
         const result = await userCollection.findOne({email});
 
-        if(!result) return res.status(401).json('Wrong email & password 1');
+        if(!result) return res.status(401).json('Wrong email & password');
         
         const isValidPassword = await bcrypt.compare(pass, result.pass);
         
-        if(!isValidPassword) return res.status(401).json('Wrong email & password 2');
+        if(!isValidPassword) return res.status(401).json('Wrong email & password');
 
         const accessToken = CreateAccessToken({name: result.name, email});
         const refreshToken = CreateRefreshToken({name: result.name, email});
@@ -102,8 +102,7 @@ authController.logout = async (req, res) => {
         res.cookie('jwt', '', { maxAge: 0 });
         
         res.json(response);
-    } catch (error) {
-        console.log(error);   
+    } catch (error) { 
         res.status(500).json('Internal server error');
     }   
 }
@@ -116,7 +115,6 @@ authController.newAccessToken = async (req, res) => {
 
         if(!validToken) return res.status(401).json('Authorization Failed');
 
-        // const query = {log: { $in: [token] } };
         const query = {log: { $elemMatch: {$eq: token} } };
 
         const response = await userCollection.findOne(query);

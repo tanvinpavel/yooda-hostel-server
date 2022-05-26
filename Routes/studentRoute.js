@@ -30,7 +30,7 @@ route.put('/updateInfo/:id', accessValidation, studentController.updateStudentIn
 //delete student by id
 route.delete('/deleteStudent/:id', accessValidation, studentController.deleteStudentById);
 
-//save the food Distribution Form
-route.post('/foodDistribution', accessValidation, studentController.foodDistributionForm);
+//delete multiple student
+route.post('/deleteMultipleStudent', accessValidation, studentController.deleteMultipleStudent);
 
 module.exports = route;
