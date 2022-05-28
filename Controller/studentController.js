@@ -142,7 +142,7 @@ studentController.updateMultipleStatus = async (req, res) => {
     const { action, statusIDList} = req.body;
     let statusObjID = statusIDList.map(item => ObjectId(item));
 
-    if(action === 'active'){
+    if(action === 'Active'){
         try {
             let result =  await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'active'}});
             res.send(result);
@@ -151,7 +151,7 @@ studentController.updateMultipleStatus = async (req, res) => {
                 error: "Internal Server Error"
             })
         }
-    }else if(action === 'inActive'){
+    }else if(action === 'Inactive'){
         try {
             let result = await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'inActive'}});
             res.send(result);
