@@ -12,20 +12,29 @@ const authController = {};
 authController.signup = async (req, res) => {
     try {
         const {email, pass, name} = req.body;
-        const payload = {name, email}; 
         
         const uniqEmail = await userCollection.findOne({email: email});
         
         if(uniqEmail) return res.status(403).json('Email already exits');
         
-        payload.pass = await bcrypt.hash(pass, 11);
+        const encryPass = await bcrypt.hash(pass, 11);
 
-        const accessToken = CreateAccessToken({name, email});
+        const userObj = {
+            "UserInfo": {
+                email,
+                "roles": {
+                    "User": 3986
+                }
+            }
+        }
+
+        const accessToken = CreateAccessToken(userObj);
         const refreshToken = CreateRefreshToken({name, email});
         
-        // store refresh token in database
+        // store userInfo & refresh token in database
         const result = await userCollection.insertOne({
-            ...payload,
+            ...userObj,
+            pass: encryPass,
             log: [ refreshToken ]
         });
         
@@ -37,8 +46,9 @@ authController.signup = async (req, res) => {
             sameSite: 'none'
         });
         
-        res.status(200).json({name, accessToken});
+        res.status(200).json({name, accessToken, roles: { User: 3986 }});
     } catch (err) {
+        console.log(err);
         res.status(500).json(err);
     }
 }
@@ -65,7 +75,13 @@ authController.login = async (req, res) => {
         
         if(!isValidPassword) return res.status(401).json('Wrong email & password');
 
-        const accessToken = CreateAccessToken({name: result.name, email});
+        const roles = Object.values(result.roles);
+
+        const userObj = {
+            "UserInfo": {email, roles}
+        }
+
+        const accessToken = CreateAccessToken(userObj);
         const refreshToken = CreateRefreshToken({name: result.name, email});
 
         //store refresh token in database
@@ -82,7 +98,7 @@ authController.login = async (req, res) => {
             sameSite: 'none'
         })
 
-        res.status(200).json({name: result.name, accessToken});
+        res.status(200).json({name: result.name, accessToken, roles });
     } catch (error) {
         res.status(500).json('Internal server error');
     }
@@ -117,11 +133,18 @@ authController.newAccessToken = async (req, res) => {
 
         const query = {log: { $elemMatch: {$eq: token} } };
 
-        const response = await userCollection.findOne(query);
+        const findUser = await userCollection.findOne(query);
 
-        if(!response) return res.status(401).json('Authorization Failed');
+        if(!findUser) return res.status(401).json('Authorization Failed');
 
-        const newAccessToken = CreateAccessToken({name: validToken.name, email: validToken.email});
+        const userObj = {
+            "UserInfo": {
+                email: findUser.email,
+                roles: findUser.roles,
+            }
+        };
+
+        const newAccessToken = CreateAccessToken(userObj);
 
         res.json({accessToken: newAccessToken});
     } catch (error) {
