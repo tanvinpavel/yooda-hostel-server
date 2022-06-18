@@ -33,6 +33,6 @@ route.put('/updateInfo/:id', accessValidation, verifyRoles(Admin), studentContro
 route.delete('/deleteStudent/:id', accessValidation, verifyRoles(Admin), studentController.deleteStudentById);
 
 //delete multiple student
-route.post('/deleteMultipleStudent', accessValidation, verifyRoles(Admin), studentController.deleteMultipleStudent);
+route.delete('/deleteMultipleStudent', accessValidation, verifyRoles(Admin), studentController.deleteMultipleStudent);
 
 module.exports = route;

@@ -4,8 +4,6 @@ const verifyRoles = (...allowRoles) => {
 
         const roles = [...allowRoles];
         const userRoles = req.roles;
-        console.log(roles);
-        console.log(userRoles);
         const hasAccess = userRoles.map(role => roles.includes(role)).find(val => val === true);
 
         if(!hasAccess) return res.sendStatus(401);

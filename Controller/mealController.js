@@ -98,13 +98,15 @@ mealController.deleteMealById = async (req, res) => {
 
 mealController.deleteMany = async (req, res)  => {
     try {
-        const query = req.body.item.map(i => ObjectId(i));
+        console.log(req.body);
+        const {statusIDList} = req.body;
+        const query = statusIDList.map(i => ObjectId(i));
         const result = await meals.deleteMany({_id: {$in: query}});
         
         res.send(result);
     } catch (error) {
         res.status(500).json({
-            error: 'data delete Failed'
+            error
         })
     }
 }

@@ -75,7 +75,8 @@ studentController.addNewStudent = async (req, res) => {
     }
 }
 
-studentController.updateStudentInfoByID = (req, res) => {
+studentController.
+updateStudentInfoByID = (req, res) => {
     const query = {_id: ObjectId(req.params.id)};
     const payload = {$set: req.body};
 
@@ -165,9 +166,9 @@ studentController.updateMultipleStatus = async (req, res) => {
 
 studentController.deleteMultipleStudent = async (req, res) => {
     try {
-        const {statusIDList} = req.body;
-        const query = statusIDList.map(i => ObjectId(i));
-        const result = await students.deleteMany({_id: {$in: query}});
+            const {statusIDList} = req.body;
+            const query = statusIDList.map(i => ObjectId(i));
+            const result = await students.deleteMany({_id: {$in: query}});
         
         res.status(200).json(result);
     } catch (error) {
