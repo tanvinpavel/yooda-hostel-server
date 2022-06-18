@@ -2,28 +2,19 @@ const express = require('express');
 const mongoUtil = require('./Utility/mongoUtil');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const credentials = require('./Middleware/credentials');
+const corsOptions = require('./Config/corsOptions');
 
 //route method
 const app = express();
 
-const whiteList = ['http://127.0.0.1:5050', 'http://localhost:3000', 'https://quizzical-brahmagupta-875937.netlify.app'];
-
-const axiosOption = {
-    origin: (origin, callback) => {
-        if(whiteList.indexOf(origin) !== -1 || true){
-            callback(null, true);
-        }else{
-            callback(new Error('not allow by cors'))
-        }
-    },
-    credentials: true,
-    optionSuccessStatus: 200
-}
-
 //middleware
-app.use(express.json());
-app.use(cors(axiosOption));
-app.use(cookieParser());
+app.use([
+    express.json(),
+    credentials,
+    cors(corsOptions),
+    cookieParser(process.env.COOKIE_SECRET)
+]);
 
 //database connection 
 mongoUtil.connectToServer( function( err, client ){

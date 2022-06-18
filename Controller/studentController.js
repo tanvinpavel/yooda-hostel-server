@@ -75,7 +75,8 @@ studentController.addNewStudent = async (req, res) => {
     }
 }
 
-studentController.updateStudentInfoByID = (req, res) => {
+studentController.
+updateStudentInfoByID = (req, res) => {
     const query = {_id: ObjectId(req.params.id)};
     const payload = {$set: req.body};
 
@@ -142,7 +143,7 @@ studentController.updateMultipleStatus = async (req, res) => {
     const { action, statusIDList} = req.body;
     let statusObjID = statusIDList.map(item => ObjectId(item));
 
-    if(action === 'active'){
+    if(action === 'Active'){
         try {
             let result =  await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'active'}});
             res.send(result);
@@ -151,7 +152,7 @@ studentController.updateMultipleStatus = async (req, res) => {
                 error: "Internal Server Error"
             })
         }
-    }else if(action === 'inActive'){
+    }else if(action === 'Inactive'){
         try {
             let result = await students.updateMany({_id: {$in: statusObjID}}, {$set: {status: 'inActive'}});
             res.send(result);
@@ -165,9 +166,9 @@ studentController.updateMultipleStatus = async (req, res) => {
 
 studentController.deleteMultipleStudent = async (req, res) => {
     try {
-        const {statusIDList} = req.body;
-        const query = statusIDList.map(i => ObjectId(i));
-        const result = await students.deleteMany({_id: {$in: query}});
+            const {statusIDList} = req.body;
+            const query = statusIDList.map(i => ObjectId(i));
+            const result = await students.deleteMany({_id: {$in: query}});
         
         res.status(200).json(result);
     } catch (error) {

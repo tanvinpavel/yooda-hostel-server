@@ -12,33 +12,43 @@ const authController = {};
 authController.signup = async (req, res) => {
     try {
         const {email, pass, name} = req.body;
-        const payload = {name, email}; 
         
         const uniqEmail = await userCollection.findOne({email: email});
         
         if(uniqEmail) return res.status(403).json('Email already exits');
         
-        payload.pass = await bcrypt.hash(pass, 11);
+        const encryPass = await bcrypt.hash(pass, 11);
 
-        const accessToken = CreateAccessToken({name, email});
+        const userObj = {
+            "UserInfo": {
+                email,
+                "roles": {
+                    "User": 3986
+                }
+            }
+        }
+
+        const accessToken = CreateAccessToken(userObj);
         const refreshToken = CreateRefreshToken({name, email});
         
-        // store refresh token in database
+        // store userInfo & refresh token in database
         const result = await userCollection.insertOne({
-            ...payload,
-            log: [ refreshToken ]
+            ...userObj,
+            pass: encryPass
         });
         
         res.cookie('jwt', refreshToken, {
             path: "/",
             secure: true,
+            signed: true,
             httpOnly: true,
             maxAge: 1000*60*60*24,
             sameSite: 'none'
         });
         
-        res.status(200).json({name, accessToken});
+        res.status(200).json({name, accessToken, roles: { User: 3986 }});
     } catch (err) {
+        console.log(err);
         res.status(500).json(err);
     }
 }
@@ -65,43 +75,60 @@ authController.login = async (req, res) => {
         
         if(!isValidPassword) return res.status(401).json('Wrong email & password');
 
-        const accessToken = CreateAccessToken({name: result.name, email});
+        const roles = Object.values(result.roles);
+
+        const userObj = {
+            "UserInfo": {email, roles}
+        }
+
+        const accessToken = CreateAccessToken(userObj);
         const refreshToken = CreateRefreshToken({name: result.name, email});
 
         //store refresh token in database
-        const filter = { email: result.email };
-        const update = { $push: {log: refreshToken} };
-        const option = { upsert: true };
+            // const filter = { email: result.email };
+            // const update = { $push: {log: refreshToken} };
+            // const option = { upsert: true };
 
-        const response = await userCollection.updateOne(filter, update, option);
+            // const response = await userCollection.updateOne(filter, update, option);
 
         res.cookie('jwt', refreshToken, {
-            maxAge: 1000*60*60*24,
             httpOnly: true,
+            signed: true,
             secure: true,
-            sameSite: 'none'
-        })
+            sameSite: 'none',
+            maxAge: 1000*60*60*24,
+        });
 
-        res.status(200).json({name: result.name, accessToken});
+        res.cookie('yoodaHostel', {name: result.name, email, roles}, {
+            path: '/',
+            maxAge: 1000*60*60*24,
+        });
+
+        res.status(200).json({name: result.name, email, accessToken, roles });
     } catch (error) {
-        res.status(500).json('Internal server error');
+        res.status(500).json(error);
     }
 }
 
 authController.logout = async (req, res) => {
     try {
-        const refreshToken = req?.cookies?.jwt;
-        if(!refreshToken) return res.status(401).json('Authorization Failed');
+        const cookies = req?.signedCookies;
+        const {email} = req.body;
+        if(!cookies) return res.status(204);
+        const refreshToken = cookies.jwt;
         
         //remove refreshToken from db
-        const filter = { email: req.userEmail };
-        const query = { $pull: { log: refreshToken } };
+            // const filter = { email: email };
+            // const query = { $pull: { log: refreshToken } };
 
-        const response = await userCollection.updateOne(filter, query);
+            // const response = await userCollection.updateOne(filter, query);
+
         //remove cookie
-        res.cookie('jwt', '', { maxAge: 0 });
+        res.clearCookie('jwt', {httpOnly: true, secure: true, sameSite: 'none'});
+
+        res.clearCookie('yoodaHostel');
         
-        res.json(response);
+        res.sendStatus(204);
     } catch (error) { 
         res.status(500).json('Internal server error');
     }   
@@ -109,23 +136,32 @@ authController.logout = async (req, res) => {
 
 authController.newAccessToken = async (req, res) => {
     try {
-        const token = req?.cookies?.jwt;
+        const token = req?.signedCookies?.jwt;
+        
         if(!token) return res.status(401).json('Authorization Failed');
         const validToken = await jwt.verify(token, process.env.REFRESHTOKEN);
 
         if(!validToken) return res.status(401).json('Authorization Failed');
 
-        const query = {log: { $elemMatch: {$eq: token} } };
+            // const query = {log: { $elemMatch: {$eq: token} } };
 
-        const response = await userCollection.findOne(query);
+        const findUser = await userCollection.findOne({email: validToken.email});
 
-        if(!response) return res.status(401).json('Authorization Failed');
+        if(!findUser) return res.status(401).json('Authorization Failed');
+        const roles = Object.values(findUser.roles);
 
-        const newAccessToken = CreateAccessToken({name: validToken.name, email: validToken.email});
+        const userObj = {
+            "UserInfo": {
+                email: findUser.email,
+                roles,
+            }
+        };
 
-        res.json({accessToken: newAccessToken});
+        const accessToken = CreateAccessToken(userObj);
+
+        res.json({roles, accessToken});
     } catch (error) {
-        res.status(500).json('Internal server error');
+        res.json(error);
     }
 }
 
